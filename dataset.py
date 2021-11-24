@@ -65,11 +65,15 @@ def crop_image(dir_im, dir_save):
             cv2.imwrite(dir_save, crop_im)
 
 
-crop_image('/home/criuser/Desktop/Internship/Original-s1-ss-286-roi-24.tif', 'Desktop/Internship/Cropped_1')
+#crop_image('/home/criuser/Desktop/Internship/Original-s1-ss-286-roi-24.tif', 'Desktop/Internship/Cropped_1')
 
-# bbox_1 = pd.read_csv("/home/criuser/Desktop/Internship/1.csv")
+bbox_1 = pd.read_csv("/home/criuser/Desktop/Internship/1.csv")
+bbox_1 = bbox_1.loc[bbox_1['Slice'] != 0]
+bbox_1 = bbox_1[['BX', 'BY', 'Width', 'Height']]
+bbox_1 = {"xmin":bbox_1['BX'],"ymin":bbox_1['BY'],"xmax":bbox_1['BX'] + bbox_1['Width'], "ymax": bbox_1['BY'] + bbox_1['Height']}
+bbox_1 = pd.DataFrame(bbox_1)
 
-# bbox_1 = bbox_1.loc[bbox_1['Slice'] != 0]
+print(bbox_1.head(58))
 
 
 # print(len(bbox_1))
