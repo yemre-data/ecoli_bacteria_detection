@@ -21,8 +21,6 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
     objects = list()
     n_box = 0
 
-
-
     for filename in os.listdir(dir_save):
         file_path = os.path.join(dir_save, filename)
         try:
@@ -33,7 +31,6 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
         except Exception as e:
             pass
 
-    print(bbox_files)
     for j,b in zip(image_files,bbox_files):
         dir_image = os.path.join(os.path.expanduser('~'), dir_image_folder, j)
         dir_bbox = os.path.join(os.path.expanduser('~'), dir_csv_folder, b)
@@ -46,7 +43,6 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
         bbox_df = {"xmin": bbox_df['BX'], "ymin": bbox_df['BY'], "xmax": bbox_df['BX'] + bbox_df['Width'],
                   "ymax": bbox_df['BY'] + bbox_df['Height']}
         bbox_df = pd.DataFrame(bbox_df)
-        print(bbox_df)
         if im_width % 300 == 0:
             nm_total_image = im_width / 300
             nm_total_image = int(nm_total_image)
@@ -56,11 +52,16 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
                 box_temp = []
                 label_tem = []
                 for index,row in bbox_df.iterrows():
-                    if row["xmin"] == x :
-
-                        box_temp.append([int(row["xmin"]-x),int(row["ymin"]),int(row["xmax"]-x),int(row["ymax"])])
-                        label_tem.append(1)
-                        n_box += 1
+                    if x <= row["xmin"] <= x+300 and row["xmin"] < nm_total_image*300:
+                        if im_width > 300:
+                            box_temp.append([int(row["xmin"]-x),int(row["ymin"]),int(row["xmax"]-x),int(300)])
+                            label_tem.append(1)
+                            n_box += 1
+                        else:
+                            box_temp.append(
+                                [int(row["xmin"] - x), int(row["ymin"]), int(row["xmax"] - x), int(row["ymax"])])
+                            label_tem.append(1)
+                            n_box += 1
                 objects.append({"boxes":box_temp,"labels":label_tem})
 
                 j = j.replace('.tif','_')
@@ -89,13 +90,17 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
                 box_temp = []
                 label_tem = []
                 for index, row in bbox_df.iterrows():
-                    if row["xmin"] == x:
-                        box_temp.append([int(row["xmin"]-x),int(row["ymin"]),int(row["xmax"]-x),int(row["ymax"])])
-                        label_tem.append(1)
-                        n_box += 1
-
+                    if x <= row["xmin"] <= x+300 and row["xmin"] < nm_total_image*300:
+                        if im_width > 300:
+                            box_temp.append([int(row["xmin"]-x),int(row["ymin"]),int(row["xmax"]-x),int(300)])
+                            label_tem.append(1)
+                            n_box += 1
+                        else:
+                            box_temp.append(
+                                [int(row["xmin"] - x), int(row["ymin"]), int(row["xmax"] - x), int(row["ymax"])])
+                            label_tem.append(1)
+                            n_box += 1
                 objects.append({"boxes": box_temp, "labels": label_tem})
-
                 j = j.replace('.tif','_')
                 name = j + str(total_image) + ".tif"
                 dir_save = os.path.join(os.path.expanduser('~'), root_dir, name)
@@ -111,16 +116,15 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
                     cv2.imwrite(dir_save, crop_im)
                     images.append(dir_save)
                     total_image += 1
-                x += 300
 
+                x += 300
 
             if im_height < 300:
                 box_temp = []
                 label_tem = []
                 for index, row in bbox_df.iterrows():
-                    dif = (300 - (im_width - (nm_total_image*300)))
-                    if row["xmin"] <= dif:
-                        box_temp.append([int(row["xmin"]-dif),int(row["ymin"]),int(row["xmax"]-dif),int(row["ymax"])])
+                    if row["xmin"] > im_width-300:
+                        box_temp.append([int(row["xmin"]-(im_width-300)),int(row["ymin"]),int(row["xmax"]-(im_width-300)),int(row["ymax"])])
                         label_tem.append(1)
                         n_box += 1
 
@@ -141,12 +145,10 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
                 box_temp = []
                 label_tem = []
                 for index, row in bbox_df.iterrows():
-                    dif = (300 - (im_width - (nm_total_image * 300)))
-                    if row["xmin"] <= dif:
-                        box_temp.append([int(row["xmin"]-dif),int(row["ymin"]),int(row["xmax"]-dif),int(row["ymax"])])
+                    if row["xmin"] > im_width-300:
+                        box_temp.append([int(row["xmin"]-(im_width-300)),int(row["ymin"]),int(row["xmax"]-(im_width-300)),int(300)])
                         label_tem.append(1)
                         n_box += 1
-
                 objects.append({"boxes": box_temp, "labels": label_tem})
 
                 j = j.replace('.tif','_')
@@ -160,11 +162,11 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
                 total_image += 1
     with open(os.path.join(root_dir, 'Images.json'), 'w') as j:
         json.dump(images, j)
-    print(objects)
+
     with open(os.path.join(root_dir, 'Bboxes.json'), 'w') as j:
         json.dump(objects, j)
     print('\nCropped original images and created %d train and test images. Images has been saved to %s .' % (total_image-1,root_dir))
-    print('\nFound %d bounding boxes. Image path and bbox locations has benn saved to %s' % (n_box,root_dir))
+    print('\nFound %d bounding boxes. Image path and bbox locations has ben saved to %s' % (n_box,root_dir))
 
 create_images_and_bbox_list("/home/criuser/Desktop/Internship/Orginal_images", '/home/criuser/Desktop/Internship/Orginal_measure','/home/criuser/Desktop/Internship/Output')
 
