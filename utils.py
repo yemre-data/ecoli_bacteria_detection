@@ -53,7 +53,7 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
                 label_tem = []
                 for index,row in bbox_df.iterrows():
                     if x <= row["xmin"] <= x+300 and row["xmin"] < nm_total_image*300:
-                        if im_width > 300:
+                        if im_height > 300:
                             box_temp.append([int(row["xmin"]-x),int(row["ymin"]),int(row["xmax"]-x),int(300)])
                             label_tem.append(1)
                             n_box += 1
@@ -91,7 +91,7 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
                 label_tem = []
                 for index, row in bbox_df.iterrows():
                     if x <= row["xmin"] <= x+300 and row["xmin"] < nm_total_image*300:
-                        if im_width > 300:
+                        if im_height > 300:
                             box_temp.append([int(row["xmin"]-x),int(row["ymin"]),int(row["xmax"]-x),int(300)])
                             label_tem.append(1)
                             n_box += 1
