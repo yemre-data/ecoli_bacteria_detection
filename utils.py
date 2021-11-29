@@ -10,11 +10,19 @@ from PIL import Image
 import matplotlib.pyplot as plt
 
 
-def crop_image(dir_image_folder, dir_save):
+def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
     image_files = [f for f in os.listdir(dir_image_folder) if isfile(join(dir_image_folder, f))]
+    bbox_files = [f for f in os.listdir(dir_csv_folder) if isfile(join(dir_csv_folder, f))]
     image_files = sorted(image_files)
+    bbox_files = sorted(bbox_files)
     total_image = 1
     root_dir = dir_save
+    images = list()
+    objects = list()
+    n_box = 0
+
+
+
     for filename in os.listdir(dir_save):
         file_path = os.path.join(dir_save, filename)
         try:
@@ -25,10 +33,19 @@ def crop_image(dir_image_folder, dir_save):
         except Exception as e:
             pass
 
-    for j in image_files:
+    print(bbox_files)
+    for j,b in zip(image_files,bbox_files):
         dir_image = os.path.join(os.path.expanduser('~'), dir_image_folder, j)
+        dir_bbox = os.path.join(os.path.expanduser('~'), dir_csv_folder, b)
+
         im = cv2.imread(dir_image, -1)
         im_height, im_width = im.shape[0], im.shape[1]
+        bbox_df = pd.read_csv(dir_bbox)
+        bbox_df = bbox_df.loc[bbox_df['Slice'] != 0]
+        bbox_df = bbox_df[['BX', 'BY', 'Width', 'Height']]
+        bbox_df = {"xmin": bbox_df['BX'], "ymin": bbox_df['BY'], "xmax": bbox_df['BX'] + bbox_df['Width'],
+                  "ymax": bbox_df['BY'] + bbox_df['Height']}
+        bbox_df = pd.DataFrame(bbox_df)
 
         if im_width % 300 == 0:
             nm_total_image = im_width / 300
@@ -36,6 +53,16 @@ def crop_image(dir_image_folder, dir_save):
 
             x, y = 0, 0
             for i in range(0, nm_total_image):
+                box_temp = []
+                label_tem = []
+                for index,row in bbox_df.iterrows():
+                    if row["xmin"] == x :
+
+                        box_temp.append([row["xmin"]-x,row["ymin"],row["xmax"]-x,row["ymax"]])
+                        label_tem.append(1)
+                        n_box += 1
+                objects.append({"boxes":box_temp,"labels":label_tem})
+
                 j = j.replace('.tif','_')
                 name = j + str(total_image) + ".tif"
                 dir_save = os.path.join(os.path.expanduser('~'), root_dir, name)
@@ -44,19 +71,31 @@ def crop_image(dir_image_folder, dir_save):
                 if im_height < 300:
                     padding_amount = 300 - im_height
                     im_pad = cv2.copyMakeBorder(crop_im, 0, padding_amount, 0, 0, cv2.BORDER_CONSTANT, (0, 0, 0))
-                    print(total_image)
                     cv2.imwrite(dir_save, im_pad)
+                    images.append(dir_save)
+                    total_image += 1
                 else:
-
                     cv2.imwrite(dir_save, crop_im)
+                    images.append(dir_save)
+                    total_image += 1
                 x += 300
-                total_image += 1
+
         else:
             nm_total_image = im_width / 300
             nm_total_image = int(nm_total_image) + 1
 
             x, y = 0, 0
             for i in range(1, nm_total_image):
+                box_temp = []
+                label_tem = []
+                for index, row in bbox_df.iterrows():
+                    if row["xmin"] == x:
+                        box_temp.append([row["xmin"] - x, row["ymin"], row["xmax"] - x, row["ymax"]])
+                        label_tem.append(1)
+                        n_box += 1
+
+                objects.append({"boxes": box_temp, "labels": label_tem})
+
                 j = j.replace('.tif','_')
                 name = j + str(total_image) + ".tif"
                 dir_save = os.path.join(os.path.expanduser('~'), root_dir, name)
@@ -65,16 +104,28 @@ def crop_image(dir_image_folder, dir_save):
                 if im_height < 300:
                     padding_amount = 300 - im_height
                     im_pad = cv2.copyMakeBorder(crop_im, 0, padding_amount, 0, 0, cv2.BORDER_CONSTANT, (0, 0, 0))
-                    print(total_image)
                     cv2.imwrite(dir_save, im_pad)
+                    images.append(dir_save)
+                    total_image += 1
                 else:
-                    print(total_image)
                     cv2.imwrite(dir_save, crop_im)
+                    images.append(dir_save)
+                    total_image += 1
                 x += 300
-                total_image += 1
+
 
             if im_height < 300:
-                total_image += 1
+                box_temp = []
+                label_tem = []
+                for index, row in bbox_df.iterrows():
+                    dif = (300 - (im_width - (nm_total_image*300)))
+                    if row["xmin"] <= dif:
+                        box_temp.append([row["xmin"] - dif, row["ymin"], row["xmax"] - dif, row["ymax"]])
+                        label_tem.append(1)
+                        n_box += 1
+
+                objects.append({"boxes": box_temp, "labels": label_tem})
+
                 j = j.replace('.tif','_')
                 name = j + str(total_image) + ".tif"
                 dir_save = os.path.join(os.path.expanduser('~'), root_dir, name)
@@ -83,33 +134,39 @@ def crop_image(dir_image_folder, dir_save):
                 crop_im = im[y:y + height, x:x + width]
                 padding_amount = 300 - im_height
                 im_pad = cv2.copyMakeBorder(crop_im, 0, padding_amount, 0, 0, cv2.BORDER_CONSTANT, (0, 0, 0))
-                print(total_image)
                 cv2.imwrite(dir_save, im_pad)
-            else:
+                images.append(dir_save)
                 total_image += 1
+            else:
+                box_temp = []
+                label_tem = []
+                for index, row in bbox_df.iterrows():
+                    dif = (300 - (im_width - (nm_total_image * 300)))
+                    if row["xmin"] <= dif:
+                        box_temp.append([row["xmin"] - dif, row["ymin"], row["xmax"] - dif, row["ymax"]])
+                        label_tem.append(1)
+                        n_box += 1
+
+                objects.append({"boxes": box_temp, "labels": label_tem})
+
                 j = j.replace('.tif','_')
                 name = j + str(total_image) + ".tif"
                 dir_save = os.path.join(os.path.expanduser('~'), root_dir, name)
                 x, y = im_width - 300, 0
                 width, height = 300, 300
                 crop_im = im[y:y + height, x:x + width]
-                print(total_image)
                 cv2.imwrite(dir_save, crop_im)
+                images.append(dir_save)
+                total_image += 1
+    with open(os.path.join(root_dir, 'Images.json'), 'w') as j:
+        json.dump(images, j)
+    with open(os.path.join(root_dir, 'Bboxes.json'), 'w') as j:
+        json.dump(objects, j)
+    print('\nCropped original images and created %d train and test images. Images has been saved to %s .' % (total_image-1,root_dir))
+    print('\nFound %d bounding boxes. Image path and bbox locations has benn saved to %s' % (n_box,root_dir))
 
-    print('\nCropped original images and created %d train and test images. Images has been saved to %s .' % (total_image,root_dir))
-
-
-crop_image("/home/criuser/Desktop/Internship/Orginal_images", '/home/criuser/Desktop/Internship/Cropped_images')
-def create_data_json( csv_folder_path):
-
-    bbox_1 = pd.read_csv("/home/criuser/Desktop/Internship/1.csv")
-    bbox_1 = bbox_1.loc[bbox_1['Slice'] != 0]
-    bbox_1 = bbox_1[['BX', 'BY', 'Width', 'Height']]
-    bbox_1 = {"xmin":bbox_1['BX'],"ymin":bbox_1['BY'],"xmax":bbox_1['BX'] + bbox_1['Width'], "ymax": bbox_1['BY'] + bbox_1['Height']}
-    bbox_1 = pd.DataFrame(bbox_1)
-
-    print(bbox_1.head(58))
+create_images_and_bbox_list("/home/criuser/Desktop/Internship/Orginal_images", '/home/criuser/Desktop/Internship/Orginal_measure','/home/criuser/Desktop/Internship/Output')
 
 
-# print(len(bbox_1))
-# class EcoliBacteriaDataset(Dataset):
+
+
