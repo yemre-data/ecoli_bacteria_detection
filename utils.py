@@ -46,7 +46,7 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
         bbox_df = {"xmin": bbox_df['BX'], "ymin": bbox_df['BY'], "xmax": bbox_df['BX'] + bbox_df['Width'],
                   "ymax": bbox_df['BY'] + bbox_df['Height']}
         bbox_df = pd.DataFrame(bbox_df)
-
+        print(bbox_df)
         if im_width % 300 == 0:
             nm_total_image = im_width / 300
             nm_total_image = int(nm_total_image)
@@ -58,7 +58,7 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
                 for index,row in bbox_df.iterrows():
                     if row["xmin"] == x :
 
-                        box_temp.append([row["xmin"]-x,row["ymin"],row["xmax"]-x,row["ymax"]])
+                        box_temp.append([int(row["xmin"]-x),int(row["ymin"]),int(row["xmax"]-x),int(row["ymax"])])
                         label_tem.append(1)
                         n_box += 1
                 objects.append({"boxes":box_temp,"labels":label_tem})
@@ -90,7 +90,7 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
                 label_tem = []
                 for index, row in bbox_df.iterrows():
                     if row["xmin"] == x:
-                        box_temp.append([row["xmin"] - x, row["ymin"], row["xmax"] - x, row["ymax"]])
+                        box_temp.append([int(row["xmin"]-x),int(row["ymin"]),int(row["xmax"]-x),int(row["ymax"])])
                         label_tem.append(1)
                         n_box += 1
 
@@ -120,7 +120,7 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
                 for index, row in bbox_df.iterrows():
                     dif = (300 - (im_width - (nm_total_image*300)))
                     if row["xmin"] <= dif:
-                        box_temp.append([row["xmin"] - dif, row["ymin"], row["xmax"] - dif, row["ymax"]])
+                        box_temp.append([int(row["xmin"]-dif),int(row["ymin"]),int(row["xmax"]-dif),int(row["ymax"])])
                         label_tem.append(1)
                         n_box += 1
 
@@ -143,7 +143,7 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
                 for index, row in bbox_df.iterrows():
                     dif = (300 - (im_width - (nm_total_image * 300)))
                     if row["xmin"] <= dif:
-                        box_temp.append([row["xmin"] - dif, row["ymin"], row["xmax"] - dif, row["ymax"]])
+                        box_temp.append([int(row["xmin"]-dif),int(row["ymin"]),int(row["xmax"]-dif),int(row["ymax"])])
                         label_tem.append(1)
                         n_box += 1
 
@@ -160,6 +160,7 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
                 total_image += 1
     with open(os.path.join(root_dir, 'Images.json'), 'w') as j:
         json.dump(images, j)
+    print(objects)
     with open(os.path.join(root_dir, 'Bboxes.json'), 'w') as j:
         json.dump(objects, j)
     print('\nCropped original images and created %d train and test images. Images has been saved to %s .' % (total_image-1,root_dir))
