@@ -66,23 +66,25 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
                                     [int(row["xmin"] - x), int(row["ymin"]), int(row["xmax"] - x), int(row["ymax"])])
                                 label_tem.append(1)
                                 n_box += 1
-                    objects.append({"boxes":box_temp,"labels":label_tem})
+                    if box_temp != [] and label_tem !=[]:
 
-                    j = j.replace('.tif','_')
-                    name = j + str(total_image) + ".tif"
-                    dir_save = os.path.join(os.path.expanduser('~'), root_dir, name)
-                    width, height = 300, 300
-                    crop_im = im[y:y + height, x:x + width]
-                    if im_height < 300:
-                        padding_amount = 300 - im_height
-                        im_pad = cv2.copyMakeBorder(crop_im, 0, padding_amount, 0, 0, cv2.BORDER_CONSTANT, (0, 0, 0))
-                        cv2.imwrite(dir_save, im_pad)
-                        images.append(dir_save)
-                        total_image += 1
-                    else:
-                        cv2.imwrite(dir_save, crop_im)
-                        images.append(dir_save)
-                        total_image += 1
+                        objects.append({"boxes":box_temp,"labels":label_tem})
+
+                        j = j.replace('.tif','_')
+                        name = j + str(total_image) + ".tif"
+                        dir_save = os.path.join(os.path.expanduser('~'), root_dir, name)
+                        width, height = 300, 300
+                        crop_im = im[y:y + height, x:x + width]
+                        if im_height < 300:
+                            padding_amount = 300 - im_height
+                            im_pad = cv2.copyMakeBorder(crop_im, 0, padding_amount, 0, 0, cv2.BORDER_CONSTANT, (0, 0, 0))
+                            cv2.imwrite(dir_save, im_pad)
+                            images.append(dir_save)
+                            total_image += 1
+                        else:
+                            cv2.imwrite(dir_save, crop_im)
+                            images.append(dir_save)
+                            total_image += 1
                     x += 300
 
             else:
@@ -104,22 +106,23 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
                                     [int(row["xmin"] - x), int(row["ymin"]), int(row["xmax"] - x), int(row["ymax"])])
                                 label_tem.append(1)
                                 n_box += 1
-                    objects.append({"boxes": box_temp, "labels": label_tem})
-                    j = j.replace('.tif','_')
-                    name = j + str(total_image) + ".tif"
-                    dir_save = os.path.join(os.path.expanduser('~'), root_dir, name)
-                    width, height = 300, 300
-                    crop_im = im[y:y + height, x:x + width]
-                    if im_height < 300:
-                        padding_amount = 300 - im_height
-                        im_pad = cv2.copyMakeBorder(crop_im, 0, padding_amount, 0, 0, cv2.BORDER_CONSTANT, (0, 0, 0))
-                        cv2.imwrite(dir_save, im_pad)
-                        images.append(dir_save)
-                        total_image += 1
-                    else:
-                        cv2.imwrite(dir_save, crop_im)
-                        images.append(dir_save)
-                        total_image += 1
+                    if box_temp != [] and label_tem != []:
+                        objects.append({"boxes": box_temp, "labels": label_tem})
+                        j = j.replace('.tif','_')
+                        name = j + str(total_image) + ".tif"
+                        dir_save = os.path.join(os.path.expanduser('~'), root_dir, name)
+                        width, height = 300, 300
+                        crop_im = im[y:y + height, x:x + width]
+                        if im_height < 300:
+                            padding_amount = 300 - im_height
+                            im_pad = cv2.copyMakeBorder(crop_im, 0, padding_amount, 0, 0, cv2.BORDER_CONSTANT, (0, 0, 0))
+                            cv2.imwrite(dir_save, im_pad)
+                            images.append(dir_save)
+                            total_image += 1
+                        else:
+                            cv2.imwrite(dir_save, crop_im)
+                            images.append(dir_save)
+                            total_image += 1
 
                     x += 300
 
@@ -131,20 +134,20 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
                             box_temp.append([int(row["xmin"]-(im_width-300)),int(row["ymin"]),int(row["xmax"]-(im_width-300)),int(row["ymax"])])
                             label_tem.append(1)
                             n_box += 1
+                    if box_temp != [] and label_tem != []:
+                        objects.append({"boxes": box_temp, "labels": label_tem})
 
-                    objects.append({"boxes": box_temp, "labels": label_tem})
-
-                    j = j.replace('.tif','_')
-                    name = j + str(total_image) + ".tif"
-                    dir_save = os.path.join(os.path.expanduser('~'), root_dir, name)
-                    x, y = im_width - 300, 0
-                    width, height = 300, 300
-                    crop_im = im[y:y + height, x:x + width]
-                    padding_amount = 300 - im_height
-                    im_pad = cv2.copyMakeBorder(crop_im, 0, padding_amount, 0, 0, cv2.BORDER_CONSTANT, (0, 0, 0))
-                    cv2.imwrite(dir_save, im_pad)
-                    images.append(dir_save)
-                    total_image += 1
+                        j = j.replace('.tif','_')
+                        name = j + str(total_image) + ".tif"
+                        dir_save = os.path.join(os.path.expanduser('~'), root_dir, name)
+                        x, y = im_width - 300, 0
+                        width, height = 300, 300
+                        crop_im = im[y:y + height, x:x + width]
+                        padding_amount = 300 - im_height
+                        im_pad = cv2.copyMakeBorder(crop_im, 0, padding_amount, 0, 0, cv2.BORDER_CONSTANT, (0, 0, 0))
+                        cv2.imwrite(dir_save, im_pad)
+                        images.append(dir_save)
+                        total_image += 1
                 else:
                     box_temp = []
                     label_tem = []
@@ -153,17 +156,18 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
                             box_temp.append([int(row["xmin"]-(im_width-300)),int(row["ymin"]),int(row["xmax"]-(im_width-300)),int(300)])
                             label_tem.append(1)
                             n_box += 1
-                    objects.append({"boxes": box_temp, "labels": label_tem})
+                    if box_temp != [] and label_tem != []:
+                        objects.append({"boxes": box_temp, "labels": label_tem})
 
-                    j = j.replace('.tif','_')
-                    name = j + str(total_image) + ".tif"
-                    dir_save = os.path.join(os.path.expanduser('~'), root_dir, name)
-                    x, y = im_width - 300, 0
-                    width, height = 300, 300
-                    crop_im = im[y:y + height, x:x + width]
-                    cv2.imwrite(dir_save, crop_im)
-                    images.append(dir_save)
-                    total_image += 1
+                        j = j.replace('.tif','_')
+                        name = j + str(total_image) + ".tif"
+                        dir_save = os.path.join(os.path.expanduser('~'), root_dir, name)
+                        x, y = im_width - 300, 0
+                        width, height = 300, 300
+                        crop_im = im[y:y + height, x:x + width]
+                        cv2.imwrite(dir_save, crop_im)
+                        images.append(dir_save)
+                        total_image += 1
     with open(os.path.join(root_dir, 'Images.json'), 'w') as j:
         json.dump(images, j)
 
@@ -194,7 +198,7 @@ def display_image(dir_json_images,dir_json_bbx,n_display):
             break
 
 
-display_image('/home/criuser/Desktop/Internship/Output/Images.json','/home/criuser/Desktop/Internship/Output/Bboxes.json',100)
+#display_image('/home/criuser/Desktop/Internship/Output/Images.json','/home/criuser/Desktop/Internship/Output/Bboxes.json',300)
 
 
 
