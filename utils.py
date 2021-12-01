@@ -11,7 +11,8 @@ import matplotlib.pyplot as plt
 from skimage import io
 
 
-def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
+def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save,train_test):
+    train_test = train_test.upper()
     image_files = [f for f in os.listdir(dir_image_folder) if isfile(join(dir_image_folder, f))]
     bbox_files = [f for f in os.listdir(dir_csv_folder) if isfile(join(dir_csv_folder, f))]
     image_files = sorted(image_files)
@@ -168,15 +169,15 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
                         cv2.imwrite(dir_save, crop_im)
                         images.append(dir_save)
                         total_image += 1
-    with open(os.path.join(root_dir, 'Images.json'), 'w') as j:
+    with open(os.path.join(root_dir, train_test+'_IMAGES.json'), 'w') as j:
         json.dump(images, j)
 
-    with open(os.path.join(root_dir, 'Bboxes.json'), 'w') as j:
+    with open(os.path.join(root_dir, train_test+'_BBOXES.json'), 'w') as j:
         json.dump(objects, j)
     print('\nCropped original images and created %d train and test images. Images has been saved to %s .' % (total_image-1,root_dir))
     print('\nFound %d bounding boxes. Image path and bbox locations has ben saved to %s' % (n_box,root_dir))
 
-#create_images_and_bbox_list("/home/criuser/Desktop/Internship/Orginal_images", '/home/criuser/Desktop/Internship/Orginal_measure','/home/criuser/Desktop/Internship/Output')
+create_images_and_bbox_list("/home/criuser/Desktop/Internship/Orginal_images", '/home/criuser/Desktop/Internship/Orginal_measure','/home/criuser/Desktop/Internship/Output','Train')
 def display_image(dir_json_images,dir_json_bbx,n_display):
     with open(dir_json_images) as f:
         dir_images = json.load(f)
@@ -198,7 +199,7 @@ def display_image(dir_json_images,dir_json_bbx,n_display):
             break
 
 
-#display_image('/home/criuser/Desktop/Internship/Output/Images.json','/home/criuser/Desktop/Internship/Output/Bboxes.json',300)
+#display_image('/home/criuser/Desktop/Internship/Output/Images.json','/home/criuser/Desktop/Internship/Output/Bboxes.json',100)
 
 
 
