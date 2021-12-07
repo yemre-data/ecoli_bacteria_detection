@@ -9,6 +9,7 @@ from os.path import isfile, join
 from PIL import Image
 import matplotlib.pyplot as plt
 from skimage import io
+import torchvision.transforms.functional as FT
 
 
 def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save,train_test):
@@ -177,7 +178,7 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save,train_
     print('\nCropped original images and created %d train and test images. Images has been saved to %s .' % (total_image-1,root_dir))
     print('\nFound %d bounding boxes. Image path and bbox locations has ben saved to %s' % (n_box,root_dir))
 
-create_images_and_bbox_list("/home/criuser/Desktop/Internship/Orginal_images", '/home/criuser/Desktop/Internship/Orginal_measure','/home/criuser/Desktop/Internship/Output','Train')
+#create_images_and_bbox_list("/home/criuser/Desktop/Internship/Orginal_images", '/home/criuser/Desktop/Internship/Orginal_measure','/home/criuser/Desktop/Internship/Output','Train')
 def display_image(dir_json_images,dir_json_bbx,n_display):
     with open(dir_json_images) as f:
         dir_images = json.load(f)
@@ -198,11 +199,24 @@ def display_image(dir_json_images,dir_json_bbx,n_display):
         if count == n_display:
             break
 
+#display_image('/home/criuser/Desktop/Internship/Output/TRAIN_IMAGES.json','/home/criuser/Desktop/Internship/Output/TRAIN_BBOXES.json',10)
 
-#display_image('/home/criuser/Desktop/Internship/Output/Images.json','/home/criuser/Desktop/Internship/Output/Bboxes.json',100)
+def transform(image, boxes, labels, split):
 
+    assert split in {'TRAIN', 'TEST'}
+    mean = [0.5, 0.5, 0.5]
+    std = [0.5, 0.5, 0.5]
 
+    new_image = image
+    new_boxes = boxes
+    new_labels = labels
 
+    if split == 'TRAIN':
 
+        new_image = FT.to_tensor(new_image)
+
+    new_image = FT.normalize(new_image, mean=mean, std=std)
+
+    return new_image, new_boxes, new_labels
 
 
