@@ -30,15 +30,15 @@ class EcoliBacteriaDataset(Dataset):
     def __len__(self):
         return len(self.images)
 
-def collate_fn(batch):
-    images = list()
-    boxes = list()
-    labels = list()
-    for b in batch:
-        images.append(b[0])
-        boxes.append(b[1])
-        labels.append(b[2])
+    def collate_fn(self, batch):
+        images = list()
+        boxes = list()
+        labels = list()
+        for b in batch:
+            images.append(b[0])
+            boxes.append(b[1])
+            labels.append(b[2])
 
-    images = torch.stack(images, dim=0)
+        images = torch.stack(images, dim=0)
 
-    return images, boxes, labels
+        return images, boxes, labels
