@@ -181,11 +181,7 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
     with open(os.path.join(root_dir, 'ALL' +'_BBOXES.json'), 'w') as j:
         json.dump(objects, j)
     # Train and test split randomly
-    test_images_ind = []
-    test_objects = []
-    for i in range(0, int(0.1*len(images))):
-        x = random.randint(1,len(images))
-        test_images_ind.append(x)
+    test_images_ind = random.sample(range(1, len(images)), int(0.1 * len(images)))
     test_images = []
     test_objects = []
     for i in test_images_ind:
@@ -208,7 +204,7 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
     print('\nCropped original images and created %d train and %d test images. Images has been saved to %s .' % (total_image-1-int(0.1*len(images)), int(0.1*len(images)),root_dir))
     print('\nFound %d bounding boxes as train and test. Image path and bbox locations has ben saved to %s. ' % (n_box,root_dir))
 
-#create_images_and_bbox_list("/home/criuser/Desktop/Internship/Orginal_images", '/home/criuser/Desktop/Internship/Orginal_measure','/home/criuser/Desktop/Internship/Output')
+create_images_and_bbox_list("/home/criuser/Desktop/Internship/Orginal_images", '/home/criuser/Desktop/Internship/Orginal_measure','/home/criuser/Desktop/Internship/Output')
 
 def display_image(dir_json_images,dir_json_bbx,n_display):
     with open(dir_json_images) as f:
