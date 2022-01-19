@@ -8,10 +8,8 @@ from utils import *
 
 # Data parameters
 data_folder = './'  # folder with data files
-keep_difficult = True  # use objects considered difficult to detect?
 
-# Model parameters
-# Not too many here since the SSD300 has a very specific structure
+
 n_classes = 1
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
