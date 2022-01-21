@@ -188,14 +188,10 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
     train_objects = objects.copy()
     for i in test_images_ind:
         test_images.append(images[i])
-        train_images[i] = 0
+        train_images.remove(images[i])
         test_objects.append(objects[i])
-        train_objects[i] = 0
-    for i,j in zip(train_images,train_objects):
-        if i == 0:
-            train_images.remove(i)
-        if j == 0:
-            train_objects.remove(j)
+        train_objects.remove(objects[i])
+
 
     with open(os.path.join(root_dir, 'TRAIN' +'_IMAGES.json'), 'w') as j:
         json.dump(train_images, j)
