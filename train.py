@@ -8,7 +8,7 @@ from utils import *
 
 # Data parameters
 data_folder = '/content/drive/MyDrive/Bacteria/Output'  # folder with data files
-
+save_checkpoint_path = '/content/drive/MyDrive/Bacteria/CheckPoints'
 
 n_classes = 2
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -90,7 +90,7 @@ def main():
               epoch=epoch)
 
         # Save checkpoint
-        save_checkpoint(epoch, model, optimizer)
+        save_checkpoint(epoch, model, optimizer,file_name = save_checkpoint_path)
 
 
 def train(train_loader, model, criterion, optimizer, epoch):
