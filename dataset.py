@@ -19,13 +19,14 @@ class EcoliBacteriaDataset(Dataset):
             self.bboxes = json.load(j)
 
     def __getitem__(self, i):
-        image = Image.open(self.images[i], mode='r')
-        image = image.convert('RGB')
-        bboxes = self.bboxes[i]
-        boxes = torch.FloatTensor(bboxes['boxes'])
-        labels = torch.LongTensor(bboxes['labels'])
-        image, boxes, labels = transform(image, boxes, labels, split = self.train_test)
-        return image, boxes, labels
+        if self.images[i] != 'Nan':
+          image = Image.open(self.images[i], mode='r')
+          image = image.convert('RGB')
+          bboxes = self.bboxes[i]
+          boxes = torch.FloatTensor(bboxes['boxes'])
+          labels = torch.LongTensor(bboxes['labels'])
+          image, boxes, labels = transform(image, boxes, labels, split = self.train_test)
+          return image, boxes, labels
 
     def __len__(self):
         return len(self.images)

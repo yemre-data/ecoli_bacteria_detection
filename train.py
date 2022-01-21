@@ -7,10 +7,10 @@ from dataset import EcoliBacteriaDataset
 from utils import *
 
 # Data parameters
-data_folder = './'  # folder with data files
+data_folder = '/content/drive/MyDrive/Bacteria/Output'  # folder with data files
 
 
-n_classes = 1
+n_classes = 2
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Learning parameters
@@ -111,7 +111,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
     start = time.time()
 
     # Batches
-    for i, (images, boxes, labels, _) in enumerate(train_loader):
+    for i, (images, boxes, labels) in enumerate(train_loader):
         data_time.update(time.time() - start)
 
         # Move to default device
