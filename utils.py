@@ -181,7 +181,7 @@ def create_images_and_bbox_list(dir_image_folder,dir_csv_folder, dir_save):
     with open(os.path.join(root_dir, 'ALL' +'_BBOXES.json'), 'w') as j:
         json.dump(objects, j)
     # Train and test split randomly
-    test_images_ind = random.sample(range(1, len(images)), int(0.1 * len(images)))
+    test_images_ind = random.sample(range(1, len(images)), int(0.1 * len(images))+1)
     test_images = []
     test_objects = []
     train_images = images.copy()
