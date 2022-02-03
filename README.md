@@ -17,3 +17,4 @@ Single shot multi-box(SSD) detector is a very fast and high-accuracy object dete
 
 This project aims to create a SSD-based framework. We will construct an adapted model based on the previous generated and preprocessed datasets. Transformation of the bounding-box format ROI (Region of interest) into coco-dataset format is needed in the first place. The modeling with the specific ratio of the bounding box will improve the accuracy. Fine-tuning the parameters is also the core work to finish this project. A developer-friendly interface is appreciated for the future project of tracking and lineage analysis.
 
+![image](https://user-images.githubusercontent.com/64874122/152441615-ddb8cf34-abb2-4084-a7bc-b0c0c2225c65.png)
