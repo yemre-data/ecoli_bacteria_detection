@@ -4,7 +4,7 @@ import json
 import os
 from PIL import Image
 from utils import transform
-
+import cv2
 class EcoliBacteriaDataset(Dataset):
 
     def __init__(self,data_folder,train_test):
@@ -20,8 +20,7 @@ class EcoliBacteriaDataset(Dataset):
 
     def __getitem__(self, i):
         if self.images[i] != 'Nan':
-          image = Image.open(self.images[i], mode='r')
-          image = image.convert('RGB')
+          image = cv2.imread(self.images[i],-1)
           bboxes = self.bboxes[i]
           boxes = torch.FloatTensor(bboxes['boxes'])
           labels = torch.LongTensor(bboxes['labels'])
