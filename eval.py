@@ -7,12 +7,12 @@ from pprint import PrettyPrinter
 pp = PrettyPrinter()
 
 # Parameters
-data_folder = './'
+data_folder = '/content/drive/MyDrive/Bacteria/Output'
 keep_difficult = True  # difficult ground truth objects must always be considered in mAP calculation, because these objects DO exist!
 batch_size = 32
 workers = 4
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-checkpoint = '/content/drive/MyDrive/Bacteria/CheckPoints/0001_1e-3_32.pth.tar'
+checkpoint = "/content/drive/MyDrive/Bacteria/CheckPoints/checkpoint_predefined_5_lr03_32.pth"
 
 # Load model checkpoint that is to be evaluated
 checkpoint = torch.load(checkpoint)
@@ -23,7 +23,9 @@ model = model.to(device)
 model.eval()
 
 # Load test data
-test_dataset = EcoliBacteriaDataset(data_folder,split='test',)
+test_dataset = EcoliBacteriaDataset(data_folder,
+                                split='test',
+                                keep_difficult=keep_difficult)
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False,
                                           collate_fn=test_dataset.collate_fn, num_workers=workers, pin_memory=True)
 
@@ -31,6 +33,7 @@ test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, s
 def evaluate(test_loader, model):
     """
     Evaluate.
+
     :param test_loader: DataLoader for test data
     :param model: model
     """
@@ -56,7 +59,7 @@ def evaluate(test_loader, model):
 
             # Detect objects in SSD output
             det_boxes_batch, det_labels_batch, det_scores_batch = model.detect_objects(predicted_locs, predicted_scores,
-                                                                                       min_score=0.01, max_overlap=0.45,
+                                                                                       min_score=0.1, max_overlap=0.45,
                                                                                        top_k=200)
             # Evaluation MUST be at min_score=0.01, max_overlap=0.45, top_k=200 for fair comparision with the paper's results and other repos
 

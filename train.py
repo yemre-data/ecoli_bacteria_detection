@@ -3,14 +3,19 @@ import torch.backends.cudnn as cudnn
 import torch.optim
 import torch.utils.data
 from ssd import SSD300, MultiBoxLoss
-from dataset import EcoliBacteriaDataset
+from datasets import EcoliBacteriaDataset
 from utils import *
+import warnings
+
+warnings.filterwarnings("ignore", category=UserWarning)
 
 # Data parameters
 data_folder = '/content/drive/MyDrive/Bacteria/Output'  # folder with data files
-save_checkpoint_path = '/content/drive/MyDrive/Bacteria/CheckPoints/0001_1e-3_32.pth.tar'
+keep_difficult = True  # use objects considered difficult to detect?
 
-n_classes = 2
+# Model parameters
+# Not too many here since the SSD300 has a very specific structure
+n_classes = len(label_map)  # number of different types of objects
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Learning parameters
@@ -18,8 +23,8 @@ checkpoint = None  # path to model checkpoint, None if none
 batch_size = 32  # batch size
 iterations = 120000  # number of iterations to train
 workers = 4  # number of workers for loading data in the DataLoader
-print_freq = 55  # print training status every __ batches
-lr = 0.0001 # learning rate
+print_freq = 220  # print training status every __ batches
+lr = 1e-3  # learning rate
 decay_lr_at = [80000, 100000]  # decay learning rate after these many iterations
 decay_lr_to = 0.1  # decay learning rate to this fraction of the existing learning rate
 momentum = 0.9  # momentum
@@ -52,7 +57,7 @@ def main():
                                     lr=lr, momentum=momentum, weight_decay=weight_decay)
 
     else:
-        checkpoint = torch.load(checkpoint,map_location=torch.device('cpu'))
+        checkpoint = torch.load(checkpoint)
         start_epoch = checkpoint['epoch'] + 1
         print('\nLoaded checkpoint from epoch %d.\n' % start_epoch)
         model = checkpoint['model']
@@ -60,11 +65,17 @@ def main():
 
     # Move to default device
     model = model.to(device)
-    criterion = MultiBoxLoss(priors_cxcy=model.priors_cxcy).to(device)
+    # Change the priors width
+    priors_cxcy = model.priors_cxcy
+    for i in range(8732):
+        priors_cxcy[i][2] = 0.0446
+
+    criterion = MultiBoxLoss(priors_cxcy=priors_cxcy).to(device)
 
     # Custom dataloaders
     train_dataset = EcoliBacteriaDataset(data_folder,
-                                     train_test='train')
+                                     split='train',
+                                     keep_difficult=keep_difficult)
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True,
                                                collate_fn=train_dataset.collate_fn, num_workers=workers,
                                                pin_memory=True)  # note that we're passing the collate function here
@@ -74,7 +85,7 @@ def main():
     # The paper trains for 120,000 iterations with a batch size of 32, decays after 80,000 and 100,000 iterations
     epochs = iterations // (len(train_dataset) // 32)
     decay_lr_at = [it // (len(train_dataset) // 32) for it in decay_lr_at]
-    print("Total epoch : " + str(epochs))
+
     # Epochs
     for epoch in range(start_epoch, epochs):
 
@@ -90,11 +101,19 @@ def main():
               epoch=epoch)
 
         # Save checkpoint
-        save_checkpoint(epoch, model, optimizer,file_name = save_checkpoint_path)
+        save_checkpoint(epoch, model, optimizer)
 
 
 def train(train_loader, model, criterion, optimizer, epoch):
+    """
+    One epoch's training.
 
+    :param train_loader: DataLoader for training data
+    :param model: model
+    :param criterion: MultiBox loss
+    :param optimizer: optimizer
+    :param epoch: epoch number
+    """
     model.train()  # training mode enables dropout
 
     batch_time = AverageMeter()  # forward prop. + back prop. time
@@ -104,7 +123,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
     start = time.time()
 
     # Batches
-    for i, (images, boxes, labels) in enumerate(train_loader):
+    for i, (images, boxes, labels, _) in enumerate(train_loader):
         data_time.update(time.time() - start)
 
         # Move to default device

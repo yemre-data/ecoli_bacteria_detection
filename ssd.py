@@ -2,16 +2,21 @@ from torch import nn
 from utils import *
 import torch.nn.functional as F
 from math import sqrt
-from itertools import product as product
 import torchvision
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
 class VGGBase(nn.Module):
+    """
+    VGG base convolutions to produce lower-level feature maps.
+    """
 
     def __init__(self):
         super(VGGBase, self).__init__()
 
-        self.conv1_1 = nn.Conv2d(3, 64, kernel_size=3, padding=1)
+        # Standard convolutional layers in VGG16
+        self.conv1_1 = nn.Conv2d(3, 64, kernel_size=3, padding=1)  # stride = 1, by default
         self.conv1_2 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
         self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
 
@@ -22,7 +27,7 @@ class VGGBase(nn.Module):
         self.conv3_1 = nn.Conv2d(128, 256, kernel_size=3, padding=1)
         self.conv3_2 = nn.Conv2d(256, 256, kernel_size=3, padding=1)
         self.conv3_3 = nn.Conv2d(256, 256, kernel_size=3, padding=1)
-        self.pool3 = nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True)
+        self.pool3 = nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True)  # ceiling (not floor) here for even dims
 
         self.conv4_1 = nn.Conv2d(256, 512, kernel_size=3, padding=1)
         self.conv4_2 = nn.Conv2d(512, 512, kernel_size=3, padding=1)
@@ -32,17 +37,23 @@ class VGGBase(nn.Module):
         self.conv5_1 = nn.Conv2d(512, 512, kernel_size=3, padding=1)
         self.conv5_2 = nn.Conv2d(512, 512, kernel_size=3, padding=1)
         self.conv5_3 = nn.Conv2d(512, 512, kernel_size=3, padding=1)
-        self.pool5 = nn.MaxPool2d(kernel_size=3, stride=1, padding=1)
+        self.pool5 = nn.MaxPool2d(kernel_size=3, stride=1, padding=1)  # retains size because stride is 1 (and padding)
 
         # Replacements for FC6 and FC7 in VGG16
         self.conv6 = nn.Conv2d(512, 1024, kernel_size=3, padding=6, dilation=6)  # atrous convolution
 
         self.conv7 = nn.Conv2d(1024, 1024, kernel_size=1)
+
         # Load pretrained layers
         self.load_pretrained_layers()
 
     def forward(self, image):
+        """
+        Forward propagation.
 
+        :param image: images, a tensor of dimensions (N, 3, 300, 300)
+        :return: lower-level feature maps conv4_3 and conv7
+        """
         out = F.relu(self.conv1_1(image))  # (N, 64, 300, 300)
         out = F.relu(self.conv1_2(out))  # (N, 64, 300, 300)
         out = self.pool1(out)  # (N, 64, 150, 150)
@@ -54,7 +65,7 @@ class VGGBase(nn.Module):
         out = F.relu(self.conv3_1(out))  # (N, 256, 75, 75)
         out = F.relu(self.conv3_2(out))  # (N, 256, 75, 75)
         out = F.relu(self.conv3_3(out))  # (N, 256, 75, 75)
-        out = self.pool3(out)  # (N, 256, 38, 38)
+        out = self.pool3(out)  # (N, 256, 38, 38), it would have been 37 if not for ceil_mode = True
 
         out = F.relu(self.conv4_1(out))  # (N, 512, 38, 38)
         out = F.relu(self.conv4_2(out))  # (N, 512, 38, 38)
@@ -73,8 +84,15 @@ class VGGBase(nn.Module):
 
         # Lower-level feature maps
         return conv4_3_feats, conv7_feats
-    def load_pretrained_layers(self):
 
+    def load_pretrained_layers(self):
+        """
+        As in the paper, we use a VGG-16 pretrained on the ImageNet task as the base network.
+        There's one available in PyTorch, see https://pytorch.org/docs/stable/torchvision/models.html#torchvision.models.vgg16
+        We copy these parameters into our network. It's straightforward for conv1 to conv5.
+        However, the original VGG-16 does not contain the conv6 and con7 layers.
+        Therefore, we convert fc6 and fc7 into convolutional layers, and subsample by decimation. See 'decimate' in utils.py.
+        """
         # Current state of base
         state_dict = self.state_dict()
         param_names = list(state_dict.keys())
@@ -106,7 +124,12 @@ class VGGBase(nn.Module):
         self.load_state_dict(state_dict)
 
         print("\nLoaded base model.\n")
+
+
 class AuxiliaryConvolutions(nn.Module):
+    """
+    Additional convolutions to produce higher-level feature maps.
+    """
 
     def __init__(self):
         super(AuxiliaryConvolutions, self).__init__()
@@ -128,14 +151,21 @@ class AuxiliaryConvolutions(nn.Module):
         self.init_conv2d()
 
     def init_conv2d(self):
-
+        """
+        Initialize convolution parameters.
+        """
         for c in self.children():
             if isinstance(c, nn.Conv2d):
                 nn.init.xavier_uniform_(c.weight)
                 nn.init.constant_(c.bias, 0.)
 
     def forward(self, conv7_feats):
+        """
+        Forward propagation.
 
+        :param conv7_feats: lower-level conv7 feature map, a tensor of dimensions (N, 1024, 19, 19)
+        :return: higher-level feature maps conv8_2, conv9_2, conv10_2, and conv11_2
+        """
         out = F.relu(self.conv8_1(conv7_feats))  # (N, 256, 19, 19)
         out = F.relu(self.conv8_2(out))  # (N, 512, 10, 10)
         conv8_2_feats = out  # (N, 512, 10, 10)
@@ -154,11 +184,22 @@ class AuxiliaryConvolutions(nn.Module):
         # Higher-level feature maps
         return conv8_2_feats, conv9_2_feats, conv10_2_feats, conv11_2_feats
 
-class PredictionConvolutions(nn.Module):
 
+class PredictionConvolutions(nn.Module):
+    """
+    Convolutions to predict class scores and bounding boxes using lower and higher-level feature maps.
+
+    The bounding boxes (locations) are predicted as encoded offsets w.r.t each of the 8732 prior (default) boxes.
+    See 'cxcy_to_gcxgcy' in utils.py for the encoding definition.
+
+    The class scores represent the scores of each object class in each of the 8732 bounding boxes located.
+    A high score for 'background' = no object.
+    """
 
     def __init__(self, n_classes):
-
+        """
+        :param n_classes: number of different types of objects
+        """
         super(PredictionConvolutions, self).__init__()
 
         self.n_classes = n_classes
@@ -192,14 +233,26 @@ class PredictionConvolutions(nn.Module):
         self.init_conv2d()
 
     def init_conv2d(self):
-
+        """
+        Initialize convolution parameters.
+        """
         for c in self.children():
             if isinstance(c, nn.Conv2d):
                 nn.init.xavier_uniform_(c.weight)
                 nn.init.constant_(c.bias, 0.)
 
     def forward(self, conv4_3_feats, conv7_feats, conv8_2_feats, conv9_2_feats, conv10_2_feats, conv11_2_feats):
+        """
+        Forward propagation.
 
+        :param conv4_3_feats: conv4_3 feature map, a tensor of dimensions (N, 512, 38, 38)
+        :param conv7_feats: conv7 feature map, a tensor of dimensions (N, 1024, 19, 19)
+        :param conv8_2_feats: conv8_2 feature map, a tensor of dimensions (N, 512, 10, 10)
+        :param conv9_2_feats: conv9_2 feature map, a tensor of dimensions (N, 256, 5, 5)
+        :param conv10_2_feats: conv10_2 feature map, a tensor of dimensions (N, 256, 3, 3)
+        :param conv11_2_feats: conv11_2 feature map, a tensor of dimensions (N, 256, 1, 1)
+        :return: 8732 locations and class scores (i.e. w.r.t each prior box) for each image
+        """
         batch_size = conv4_3_feats.size(0)
 
         # Predict localization boxes' bounds (as offsets w.r.t prior-boxes)
@@ -264,8 +317,12 @@ class PredictionConvolutions(nn.Module):
                                    dim=1)  # (N, 8732, n_classes)
 
         return locs, classes_scores
-class SSD300(nn.Module):
 
+
+class SSD300(nn.Module):
+    """
+    The SSD300 network - encapsulates the base VGG network, auxiliary, and prediction convolutions.
+    """
 
     def __init__(self, n_classes):
         super(SSD300, self).__init__()
@@ -285,7 +342,12 @@ class SSD300(nn.Module):
         self.priors_cxcy = self.create_prior_boxes()
 
     def forward(self, image):
+        """
+        Forward propagation.
 
+        :param image: images, a tensor of dimensions (N, 3, 300, 300)
+        :return: 8732 locations and class scores (i.e. w.r.t each prior box) for each image
+        """
         # Run VGG base network convolutions (lower level feature map generators)
         conv4_3_feats, conv7_feats = self.base(image)  # (N, 512, 38, 38), (N, 1024, 19, 19)
 
@@ -306,7 +368,11 @@ class SSD300(nn.Module):
         return locs, classes_scores
 
     def create_prior_boxes(self):
+        """
+        Create the 8732 prior (default) boxes for the SSD300, as defined in the paper.
 
+        :return: prior boxes in center-size coordinates, a tensor of dimensions (8732, 4)
+        """
         fmap_dims = {'conv4_3': 38,
                      'conv7': 19,
                      'conv8_2': 10,
@@ -357,7 +423,18 @@ class SSD300(nn.Module):
         return prior_boxes
 
     def detect_objects(self, predicted_locs, predicted_scores, min_score, max_overlap, top_k):
+        """
+        Decipher the 8732 locations and class scores (output of ths SSD300) to detect objects.
 
+        For each class, perform Non-Maximum Suppression (NMS) on boxes that are above a minimum threshold.
+
+        :param predicted_locs: predicted locations/boxes w.r.t the 8732 prior boxes, a tensor of dimensions (N, 8732, 4)
+        :param predicted_scores: class scores for each of the encoded locations/boxes, a tensor of dimensions (N, 8732, n_classes)
+        :param min_score: minimum threshold for a box to be considered a match for a certain class
+        :param max_overlap: maximum overlap two boxes can have so that the one with the lower score is not suppressed via NMS
+        :param top_k: if there are a lot of resulting detection across all classes, keep only the top 'k'
+        :return: detections (boxes, labels, and scores), lists of length batch_size
+        """
         batch_size = predicted_locs.size(0)
         n_priors = self.priors_cxcy.size(0)
         predicted_scores = F.softmax(predicted_scores, dim=2)  # (N, 8732, n_classes)
@@ -370,6 +447,7 @@ class SSD300(nn.Module):
         assert n_priors == predicted_locs.size(1) == predicted_scores.size(1)
 
         for i in range(batch_size):
+
             # Decode object coordinates from the form we regressed predicted boxes to
             decoded_locs = cxcy_to_xy(
                 gcxgcy_to_cxcy(predicted_locs[i], self.priors_cxcy))  # (8732, 4), these are fractional pt. coordinates
@@ -443,6 +521,8 @@ class SSD300(nn.Module):
                 image_boxes = image_boxes[sort_ind][:top_k]  # (top_k, 4)
                 image_labels = image_labels[sort_ind][:top_k]  # (top_k)
 
+            image_boxes = fix_boxes(image_boxes)
+
             # Append to lists that store predicted boxes and scores for all images
             all_images_boxes.append(image_boxes)
             all_images_labels.append(image_labels)
@@ -452,7 +532,13 @@ class SSD300(nn.Module):
 
 
 class MultiBoxLoss(nn.Module):
+    """
+    The MultiBox loss, a loss function for object detection.
 
+    This is a combination of:
+    (1) a localization loss for the predicted locations of the boxes, and
+    (2) a confidence loss for the predicted class scores.
+    """
 
     def __init__(self, priors_cxcy, threshold=0.5, neg_pos_ratio=3, alpha=1.):
         super(MultiBoxLoss, self).__init__()
@@ -466,7 +552,15 @@ class MultiBoxLoss(nn.Module):
         self.cross_entropy = nn.CrossEntropyLoss(reduce=False)
 
     def forward(self, predicted_locs, predicted_scores, boxes, labels):
+        """
+        Forward propagation.
 
+        :param predicted_locs: predicted locations/boxes w.r.t the 8732 prior boxes, a tensor of dimensions (N, 8732, 4)
+        :param predicted_scores: class scores for each of the encoded locations/boxes, a tensor of dimensions (N, 8732, n_classes)
+        :param boxes: true  object bounding boxes in boundary coordinates, a list of N tensors
+        :param labels: true object labels, a list of N tensors
+        :return: multibox loss, a scalar
+        """
         batch_size = predicted_locs.size(0)
         n_priors = self.priors_cxcy.size(0)
         n_classes = predicted_scores.size(2)
