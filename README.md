@@ -28,8 +28,7 @@ an advanced detection level and satisfies our demands.
 This project aims to create a SSD-based framework. We will construct an adapted model based on the previous generated and
 preprocessed datasets. Transformation of the bounding-box format ROI (Region of interest) into voc-dataset format is needed
 in the first place. The modeling with the specific ratio of the bounding box will improve the accuracy. Fine-tuning the 
-parameters is also the core work to finish this project. A developer-friendly interface is appreciated for the future project
-of tracking and lineage analysis.
+parameters is also the core work to finish this project. 
 
 ## Process of the Project
 ### 1. Data Preparation
@@ -89,14 +88,47 @@ by the channel standard deviation. After this process, standard deviation of the
 Transformations are really important to success in the SSD model. It affects to learning process and computing time.
 
 ### 3. Modelling and model explanation
-I will explain modeling in 5 parts. I will explain the concept of the model and what they aim with this study 
-they published, and then I will try to explain what processes are in the implementation, respectively.
+I will explain modeling in 2 parts. I will explain the concept of the model and what they aim with this study 
+they published, and then I will explain what processes are in the implementation, respectively.
 
-#### 3.1 Model concept
+#### 3.1 Model explanation
+![img_1.png](img_1.png)
+<p align="center">
+Figure4: Structure of architecture
+</p>
+SSD is simple relative to methods that require object
+proposals because it completely eliminates proposal generation and subsequent
+pixel or feature resampling stages and encapsulates all computation in a single
+network. The SSD approach is based on a feed-forward convolutional network that produces
+a fixed-size collection of bounding boxes and scores for the presence of object class
+instances in those boxes, followed by a non-maximum suppression step to produce the
+final detections. With this capsule method, we perform localization and class prediction tasks at the same time, thus we saving 
+time in computing.
+As seen in the figure4, the architecture consists of four main parts. Firstly, <strong>7 feature maps</strong> are creating by passing the 
+data from adopted VGG16 base layers. (Adopted VGG16: we delete last fully connected and we convert fc6 and fc7 to 
+convolutional layer as conv6 and conv7.) Second we re-do conv on the last base of conv layer thus, we created totally 11 feature maps.
+Then we are using 6 feature maps those are 'conv4_3','conv7','conv8_2','conv9_2','conv10_2,'conv11_2 to predict 8732 
+priors(anchors) per class with location and class.Finally, we put 8732 priors to the Non-Maximum Suppression function 
+to eliminate priors then we reach final bounding box. 
+
+#### 3.2 Modeling(implementation)
+We have 5 different classes to build model and train. Those are ; base conv, auxiliary conv, prediction conv, ssd300,
+and multi box loss.
+##### 3.2.1 Base(VGG16) convolutional
+As stated above, we use a fully convolutional structure to create base feature maps in this class. At the same time, we
+bring the model to a more learnable level by getting help from the transfer learning magic.Therefore, we need to adjust 
+the weights of the VGG16 model we have received, because we do not have a fully connected layer. In utils.py decimate 
+function is doing down sampling for conv6 and conv7. With this way we create 15 conv layer and 5 pooling layer with
+ImageNet weights. Input dimension is (N, 3, 300, 300) and output are 5 feature maps and last layer dimension is (N, 1024, 19, 19).
+However, we will use just two feature maps from base part which are conv4_3, conv7 as stated in the paper.
+##### 3.2.2 Auxiliary convolutional
 
 
 
-### 4. Training and experiments
+
+
+
+### 4. Training and several experiments
 
 ### 5. Test results
 
