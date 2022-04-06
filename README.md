@@ -67,13 +67,28 @@ In order to adapt our existing images to the ssd300 architecture,
 4. While cropping image, we save the bbox information in to the json file with label and difficulty attributes. 
    If the part of image does not have bbox, we 
    passed them.
+5. Finally, we randomly split data as TRAIN and TEST and saving json files.
+
+As a result, we have obtained 1752 training images and 195 test images.
+
    
 ![image](https://user-images.githubusercontent.com/64874122/152441615-ddb8cf34-abb2-4084-a7bc-b0c0c2225c65.png)
 
-Figure2: A part of csv file
+Figure3: An example image data with bboxes.
 
-### 2. Data Preparation
+### 2. Data transforming and load to tensor
+1. First we loaded our float,long, and, byte data in to the tensor,
+2. Then we performed several augmentation method which are expanding, cropping, flipping, photometric distort,
+3. We normalize data with ImageNet data mean and standard deviation because we are using transfer learning weights to base conv.
+   (mean = [0.485, 0.456, 0.406], std = [0.229, 0.224, 0.225])
+   
+I would explain here how we normalize data with mean and std. In utils.py we are using torch transform functional Normalize function 
+to normalize images. Where mean and std are the mean and standard deviation of the RGB pixels and this is common to the 
+ImageNet dataset.To do this first the channel mean is subtracted from each input channel and then the result is divided 
+by the channel standard deviation. After this process, standard deviation of the image become 0.0 and 1.0 respectively.
+Transformations are really important to success in the SSD model. It affects to learning process and computing time.
 
+### 3. Modelling and model explanation
 
 
 
