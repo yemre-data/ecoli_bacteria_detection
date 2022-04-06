@@ -89,10 +89,17 @@ by the channel standard deviation. After this process, standard deviation of the
 Transformations are really important to success in the SSD model. It affects to learning process and computing time.
 
 ### 3. Modelling and model explanation
+I will explain modeling in 6 parts. Firstly I will explain some basics to understand better than I will explain the 
+general concept of the model and what they aim with this study they published, and next I will try to explain what 
+processes are in the implementation, respectively.
+
+#### 3.1 Basics to Understand
 
 
 
+### 4. Training and experiments
 
+### 5. Test results
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
