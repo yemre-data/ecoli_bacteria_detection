@@ -51,7 +51,7 @@ resolutions. With these data we have also csv files that has created ImageJ prog
 * Width : bbox width
 * Height : bbox height
 
-![img_2.png](img_2.png)
+![img_2.png](read_me/img_2.png)
 
 Figure2: A part of csv file
 
@@ -92,7 +92,7 @@ I will explain modeling in 2 parts. I will explain the concept of the model and 
 they published, and then I will explain what processes are in the implementation, respectively.
 
 #### 3.1 Model explanation
-![img_1.png](img_1.png)
+![img_1.png](read_me/img_1.png)
 <p align="center">
 Figure4: Structure of architecture
 </p>
@@ -123,14 +123,17 @@ ImageNet weights. Input dimension is (N, 3, 300, 300) and output are 5 feature m
 However, we will use just two feature maps from base part which are conv4_3, conv7 as stated in the paper.
 ##### 3.2.2 Auxiliary convolutional
 
-
-
-
+![img_3.png](read_me/img_3.png)
+<p align="center">
+Figure5: Auxiliary conv
+</p>
+As seen in figure 5 above, we find 4 feature maps by passing 8 more layers to the last layer of VGG16 base. With this,
+we can capture even very small features of the image. Last dimension is  # (N, 256, 1, 1). N : batch_size
 
 
 ### 4. Training and several experiments
 
-### 5. Test results
+
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
