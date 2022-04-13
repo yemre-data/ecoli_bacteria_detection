@@ -91,7 +91,7 @@ Transformations are really important to success in the SSD model. It affects to 
 I will explain modeling in 2 parts. I will explain the concept of the model and what they aim with this study 
 they published, and then I will explain what processes are in the implementation, respectively.
 
-#### 3.1 Model explanation
+### 3.1 Model explanation
 ![img_1.png](read_me/img_1.png)
 <p align="center">
 Figure4: Structure of architecture
@@ -111,17 +111,17 @@ Then we are using 6 feature maps those are 'conv4_3','conv7','conv8_2','conv9_2'
 priors(anchors) per class with location and class.Finally, we put 8732 priors to the Non-Maximum Suppression function 
 to eliminate priors then we reach final bounding box. 
 
-#### 3.2 Modeling(implementation)
+### 3.2 Modeling(implementation)
 We have 5 different classes to build model and train. Those are ; base conv, auxiliary conv, prediction conv, ssd300,
 and multi box loss.
-##### 3.2.1 Base(VGG16) convolutional
+### 3.2.1 Base(VGG16) convolutional
 As stated above, we use a fully convolutional structure to create base feature maps in this class. At the same time, we
 bring the model to a more learnable level by getting help from the transfer learning magic.Therefore, we need to adjust 
 the weights of the VGG16 model we have received, because we do not have a fully connected layer. In utils.py decimate 
 function is doing down sampling for conv6 and conv7. With this way we create 15 conv layer and 5 pooling layer with
 ImageNet weights. Input dimension is (N, 3, 300, 300) and output are 5 feature maps and last layer dimension is (N, 1024, 19, 19).
 However, we will use just two feature maps from base part which are conv4_3, conv7 as stated in the paper.
-##### 3.2.2 Auxiliary convolutional
+### 3.2.2 Auxiliary convolutional
 
 ![img_3.png](read_me/img_3.png)
 <p align="center">
@@ -129,6 +129,30 @@ Figure5: Auxiliary conv
 </p>
 As seen in figure 5 above, we find 4 feature maps by passing 8 more layers to the last layer of VGG16 base. With this,
 we can capture even very small features of the image. Last dimension is  # (N, 256, 1, 1). N : batch_size
+
+### 3.2.3 Prediction Conv 
+Before explain prediction processes, I would clarify one of definition that is really crucial to understand concept.
+Priors: Priors are the fixed scale and ratio boxes to the feature maps that we have determined beforehand. While we are 
+building our prediction model, we add it to our model as a function (SSD300). We can change the ratios and scales that 
+we define in this function for different tasks.
+
+In this class, we need to predict two values, which are the object's class and its localization. Using the 6 feature maps
+we obtained before(base conv and extra conv), we predict 8732 boxes (that will compute with priors in the loss) and also
+predict the class of each box. So how do we do this?
+I would like to explain one map as an example here. Let's take conv_4_3_feats for example. We prepared this map as output
+channel (N,512,38,38) in base conv . Here again, we need to create an appropriate input convolutional for this out. 
+At the same time, we define the output of our layer according to the amount of estimation of the number of boxes for each
+position we predetermined. conv_4_3_feats is 4 for each position. On the other hand, since our boxes have 4 positions, we
+expect our layer conv_4_3_feats to output 16 sizes (N, 16, 38, 38).Then we replace the tensors with the permute 
+function and send them to the chunk of memory with contiguous (N, 38, 38, 16). Finally, we get the tensor (N, 5776, 4) 
+by reshaping the tensor with the view function. That's just a guess of 5776 of conv_4_3_feats. Now you may have a 
+question, why do we predict 8732 of prior's 5776 from a map? Because the map is the biggest and has more information, it will 
+increase our accuracy by making the more prior estimation here.
+So we are doing same steps to other maps and finally we predict 8732 priors. After that, we predict class scores for each 
+predicted priors(if you have one class as we have you will have two class total your object and background)(N, 5776, n_classes)
+
+### 3.2.3 Multi-box Loss 
+
 
 
 ### 4. Training and several experiments
