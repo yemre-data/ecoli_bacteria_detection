@@ -151,10 +151,33 @@ increase our accuracy by making the more prior estimation here.
 So we are doing same steps to other maps and finally we concatenate all 6 tensors, and we predict 8732 priors. After 
 that, we predict class scores for each predicted priors(if you have one class as we have you will have two class total 
 your object and background)(N, 5776, n_classes).
+### 3.2.4 SSD300
+Here, the final model is created by combining the conv classes described above.
 
-### 3.2.3 Multi-box Loss 
+### 3.2.5 Multi-box Loss 
+One of the crucial things is to calculate the loss for journey of teaching our model. In this model, since we predict the
+location and class of the objects, two losses will emerge. By aggregating these losses, we calculate the final loss.
 
+**Loc Loss**
+1. First finding overlaps(Jaccard func.) between 8732 priors and N ground truth.(8732,N)
+2. Matching each prior to object which it has the greatest overlap.
+3. Finding positive matches and negative matches by check overlaps are greater than 0.5 or less than 0.5.
+4. Identifying non-background objects with positive matches.
+5. Encoding(g_c_x, g_c_y, g_w, g_h) positive matches with pre-defined priors because we predict is same encoded form.
+6. Putting these predicted value and encoded ground truth value in smooth_l1 function.
 
+**Confidence Loss (class loss)**
+We use cross entropy loss to find class loss we calculate with predicted class scores and true class values.
+Authors are using an approach to called Hard Negative Mining. If the negative matches overwhelm the positive ones, 
+we will end up with a model that is less likely to detect objects because, more often than not, it is taught to detect 
+the background class. Therefore, we are using hard negative priors where are they have been max loss. Then as paper stated,
+we calculate average loss positive and hard negative over the just positive losses.
+
+Final loss will be shown below.
+L = L(confidence) + alpha*L(localization)
+
+alpha:Normally we do not need alpha parameter . It is future learnable parameter but authors has to taken as 1 we are 
+using same value for it.
 
 ### 4. Training and several experiments
 
