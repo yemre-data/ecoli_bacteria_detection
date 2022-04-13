@@ -142,14 +142,15 @@ predict the class of each box. So how do we do this?
 I would like to explain one map as an example here. Let's take conv_4_3_feats for example. We prepared this map as output
 channel (N,512,38,38) in base conv . Here again, we need to create an appropriate input convolutional for this out. 
 At the same time, we define the output of our layer according to the amount of estimation of the number of boxes for each
-position we predetermined. conv_4_3_feats is 4 for each position. On the other hand, since our boxes have 4 positions, we
+position we predetermined. conv_4_3_feats has 4 priors for each position. On the other hand, since our boxes have 4 positions, we
 expect our layer conv_4_3_feats to output 16 sizes (N, 16, 38, 38).Then we replace the tensors with the permute 
-function and send them to the chunk of memory with contiguous (N, 38, 38, 16). Finally, we get the tensor (N, 5776, 4) 
-by reshaping the tensor with the view function. That's just a guess of 5776 of conv_4_3_feats. Now you may have a 
+function and send them to the chunk of memory with contiguous function (N, 38, 38, 16). Finally, we get the tensor (N, 5776, 4) 
+by reshaping the tensor with the view function. That's just a prediction of 5776 of conv_4_3_feats. Now you may have a 
 question, why do we predict 8732 of prior's 5776 from a map? Because the map is the biggest and has more information, it will 
 increase our accuracy by making the more prior estimation here.
-So we are doing same steps to other maps and finally we predict 8732 priors. After that, we predict class scores for each 
-predicted priors(if you have one class as we have you will have two class total your object and background)(N, 5776, n_classes)
+So we are doing same steps to other maps and finally we concatenate all 6 tensors, and we predict 8732 priors. After 
+that, we predict class scores for each predicted priors(if you have one class as we have you will have two class total 
+your object and background)(N, 5776, n_classes).
 
 ### 3.2.3 Multi-box Loss 
 
