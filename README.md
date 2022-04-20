@@ -189,8 +189,33 @@ using same value for it.
 | 5.      | 100K                | 32         | 1.5e-3        | 70K-90K  amt:0.1    | No           | %45<        | %80.13|
 | 6.      | 120K                | 32         | 1e-3          | 80K-100K  amt:0.1   | Prior ratio and scale changed (too small) | %45<        | %32.74|
 | 7.      | 120K                | 32         | 1e-3          | 80K-100K  amt:0.1   | After predict define fixed width on predicted_locs   | %45< | None(because need more computing power)|
-| 8.      | 120K                | 32         | 1e-3          | 80K-100K  amt:0.1   | Chnaged xy_to_cxcy function and predefine cxcy priors of width  | %45<        | %78.35|
+| 8.      | 120K                | 32         | 1e-3          | 80K-100K  amt:0.1   | Changed xy_to_cxcy function and predefine cxcy priors of width  | %45<        | %78.35|
 | 9.      | 120K                | 32         | 1e-3          | 80K-100K  amt:0.1   | Adjusting widths and alignments | %45<        | %80.72|
 | 10.     | 120K                | 32         | 1.3e-3        | 80K-100K  amt:0.1   | Adjusting widths and alignments | %45<        | **%80.78**|
+
+I have finished project with mAP ~ %81 still needs some improvement. I could not reach better result due to the image quality. 
+I tried pre-define bounding boxes of width  with different way, and I found a  solution to do accurate way it increased however not too much.
+
+**Time of Model**
+Training time : ~ 23 hours
+One image test time : 0.022 second
+Images per second : 79
+
+[You can check out my Internship .](https://docs.google.com/presentation/d/1CQ9TLG6yk_PlnoGDOXz6Pge4b3XqLy7anFAWpOKgswg/edit?usp=sharing)
+
+![final](read_me/final result.png)
+
+Figure6: An example detected final result
+
+
+###### References:
+
+https://imagej.nih.gov/ij/,
+https://pytorch.org/,
+https://www.sciencedirect.com/science/article/abs/pii/S0580951716300034,
+https://arxiv.org/abs/1512.02325,
+https://nealanalytics.com/blog/7-steps-successful-computer-vision-poc/,
+https://github.com/sgrvinod,
+
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
