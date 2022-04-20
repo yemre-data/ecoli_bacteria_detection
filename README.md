@@ -201,7 +201,7 @@ Training time : ~ 23 hours
 One image test time : 0.022 second
 Images per second : 79
 
-[You can check out my Internship .](https://docs.google.com/presentation/d/1CQ9TLG6yk_PlnoGDOXz6Pge4b3XqLy7anFAWpOKgswg/edit?usp=sharing)
+[You can check out my internship defence.](https://docs.google.com/presentation/d/1CQ9TLG6yk_PlnoGDOXz6Pge4b3XqLy7anFAWpOKgswg/edit?usp=sharing)
 
 ![final](read_me/final result.png)
 
