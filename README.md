@@ -180,6 +180,10 @@ alpha:Normally we do not need alpha parameter . It is future learnable parameter
 using same value for it.
 
 ### 4. Training and several experiments
+| No. Exp | Number of Iteration | Batch Size | Learning Rate | Decay Learning Rate | Modification | IoU Overlap | mAP |
+| --------| :------------------:|:----------:| :-----------: | :-----------------: |:------------:| :----------:| :---:| 
+| 1.      | 120K                | 32         | 1e-3          | 80K-100K  0.1       | No           | %45<        | %81  |
+
 
 
 
