@@ -182,10 +182,15 @@ using same value for it.
 ### 4. Training and several experiments
 | No. Exp | Number of Iteration | Batch Size | Learning Rate | Decay Learning Rate | Modification | IoU Overlap | mAP |
 | --------| :------------------:|:----------:| :-----------: | :-----------------: |:------------:| :----------:| :---:| 
-| 1.      | 120K                | 32         | 1e-3          | 80K-100K  0.1       | No           | %45<        | %81  |
-
-
-
-
+| 1.      | 120K                | 32         | 1e-3          | 80K-100K  amt:0.1   | No           | %45<        | %80.58|
+| 2.      | 150K                | 32         | 1e-3          | 80K-100K  amt:0.1   | No           | %45<        | %80.54|
+| 3.      | 120K                | 16         | 1e-3          | 80K-100K  amt:0.1   | No           | %45<        | %80.49|
+| 4.      | 120K                | 32         | 1.3e-3        | 80K-100K  amt:0.1   | No           | %45<        | %80.60|
+| 5.      | 100K                | 32         | 1.5e-3        | 70K-90K  amt:0.1    | No           | %45<        | %80.13|
+| 6.      | 120K                | 32         | 1e-3          | 80K-100K  amt:0.1   | Prior ratio and scale changed (too small) | %45<        | %32.74|
+| 7.      | 120K                | 32         | 1e-3          | 80K-100K  amt:0.1   | After predict define fixed width on predicted_locs   | %45< | None(because need more computing power)|
+| 8.      | 120K                | 32         | 1e-3          | 80K-100K  amt:0.1   | Chnaged xy_to_cxcy function and predefine cxcy priors of width  | %45<        | %78.35|
+| 9.      | 120K                | 32         | 1e-3          | 80K-100K  amt:0.1   | Adjusting widths and alignments | %45<        | %80.72|
+| 10.     | 120K                | 32         | 1.3e-3        | 80K-100K  amt:0.1   | Adjusting widths and alignments | %45<        | **%80.78**|
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
